@@ -353,3 +353,9 @@ Describe "Ruby" {
         }
     }
 }
+
+Describe "VMWare" {
+    It "vmware" {
+        "vmware-toolbox-cmd -v" | Should -ReturnZeroExitCode
+    }
+}

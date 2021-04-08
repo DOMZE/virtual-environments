@@ -4,15 +4,13 @@ param(
     [String] [Parameter (Mandatory=$true)] $BuilderHostUsername,
     [String] [Parameter (Mandatory=$true)] $BuilderHostPassword,
     [String] [Parameter (Mandatory=$true)] $BuilderHostDataStore,
-    [String] [Parameter (Mandatory=$true)] $BuilderHostPortGroup,
-    [String] [Parameter (Mandatory=$true)] $VCenterHost,
-    [String] [Parameter (Mandatory=$true)] $VCenterHostUsername,
-    [String] [Parameter (Mandatory=$true)] $VCenterHostPassword,    
+    [String] [Parameter (Mandatory=$true)] $BuilderHostPortGroup,   
     [String] [Parameter (Mandatory=$true)] $VMName,
     [String] [Parameter (Mandatory=$true)] $SSHUserName,
     [String] [Parameter (Mandatory=$true)] $ISOLocalPath,
     [String] [Parameter (Mandatory=$true)] $ISOChecksum,
-    [String] [Parameter (Mandatory=$true)] $GitHubFeedToken
+    [String] [Parameter (Mandatory=$true)] $GitHubFeedToken,
+    [String] [Parameter (Mandatory=$true)] $ImageVersion
 )
 
 if (-not (Test-Path $TemplatePath))
@@ -58,13 +56,14 @@ packer build    -var "builder_host=$BuilderHost" `
                 -var "ovftool_deploy_vcenter=$VCenterHost" `
                 -var "ovftool_deploy_vcenter_username=$VCenterHostUsername" `
                 -var "ovftool_deploy_vcenter_password=$VCenterHostPassword" `
-                -var "vm_name=$VMName" `
+                -var "vm_name=$VMName-$ImageVersion" `
                 -var "ssh_username=$SSHUserName" `
                 -var "ssh_password=$InstallPassword" `
                 -var "iso_local_path=$ISOLocalPath" `
                 -var "iso_checksum=$ISOChecksum" `
                 -var "run_validation_diskspace=$env:RUN_VALIDATION_FLAG" `
                 -var "github_feed_token=$GitHubFeedToken" `
+                -var "image_version=$ImageVersion"
                 $TemplatePath `
         | Where-Object {
             #Filter sensitive data from Packer logs

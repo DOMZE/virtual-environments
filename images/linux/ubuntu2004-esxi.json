@@ -4,7 +4,7 @@
         "imagedata_file": "/imagegeneration/imagedata.json",
         "installer_script_folder": "/imagegeneration/installers",
         "helper_script_folder": "/imagegeneration/helpers",
-        "image_version": "dev",
+        "image_version": "dev-esxi",
         "image_os": "ubuntu20",
         "run_validation_diskspace": "false",
         "dockerhub_login": "{{env `DOCKERHUB_LOGIN`}}",
@@ -19,7 +19,11 @@
         {
             "type": "vmware-iso",
             "vm_name": "{{ user `vm_name` }}",
-            "guest_os_type": "ubuntu64Guest",
+            "guest_os_type": "ubuntu-64",
+            "cpus": "{{ user `numvcpus` }}",
+            "memory": "{{ user `ramsize` }}",
+            "network": "vmxnet3",
+            "networkName": "{{ user `builder_host_portgroup` }}",
             "disk_size": "122880",
             "boot_command": [
                 "<esc><wait>",
@@ -39,8 +43,7 @@
                 " kbd-chooser/method=us<wait>",
                 " keyboard-configuration/layout=USA<wait>",
                 " keyboard-configuration/variant=USA<wait>",
-                " netcfg/get_domain=vm<wait>",
-                " netcfg/get_hostname=packer-adoa-build<wait>",
+                " hostname={{.Name}}<wait>",
                 " grub-installer/bootdev=/dev/sda<wait>",
                 " noapic<wait>",
                 " -- <wait>",
@@ -61,33 +64,23 @@
             "remote_datastore": "{{ user `builder_host_datastore` }}",
             "remote_username": "{{ user `builder_host_username` }}",
             "remote_password": "{{ user `builder_host_password` }}",
+            "remote_output_directory": "{{ user `builder_host_output_dir` }}",
             "ssh_username": "packer",
             "ssh_password": "{{ user `ssh_password` }}",
             "ssh_port": 22,
             "ssh_wait_timeout": "1800s",
             "format": "ovf",
-            "shutdown_command": "sudo shutdown -P now",
+            "shutdown_command": "echo {{ user `ssh_password` }} | sudo -S shutdown now",
             "shutdown_timeout": "1000s",
             "vmx_data": {
-                "numvcpus": "{{ user `numvcpus` }}",
-                "memsize": "{{ user `ramsize` }}",
-                "ethernet0.networkName": "{{ user `builder_host_portgroup` }}",
                 "ethernet0.present": "TRUE",
                 "ethernet0.startConnected": "TRUE",
-                "ethernet0.virtualDev": "vmxnet3",
                 "ethernet0.addressType": "generated",
                 "ethernet0.wakeOnPcktRcv": "FALSE"
             }
         }
     ],
     "provisioners": [
-        {
-            "type": "shell",
-            "inline": [
-                "echo \"packer ALL=(ALL) NOPASSWD: ALL\" | tee /etc/sudoers.d/packer"
-            ],
-            "execute_command": "echo {{ user `ssh_password` }} | sudo -S sh -c '{{ .Vars }} {{ .Path }}'"
-        },
         {
             "type": "shell",
             "inline": [
@@ -206,6 +199,19 @@
             ],
             "execute_command": "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
         },
+        {
+            "type": "shell",
+            "scripts": [
+                "{{template_dir}}/scripts/installers/vmware.sh",
+                "{{template_dir}}/scripts/installers/vsts-agent.sh"
+            ],
+            "environment_vars": [
+                "HELPER_SCRIPTS={{user `helper_script_folder`}}",
+                "DEBIAN_FRONTEND=noninteractive",
+                "INSTALLER_SCRIPT_FOLDER={{user `installer_script_folder`}}"
+            ],
+            "execute_command": "/bin/sh -c '{{ .Vars }} {{ .Path }}'"
+        },          
         {
             "type": "shell",
             "scripts": [
@@ -395,20 +401,13 @@
                 "cp /tmp/ubuntu2004.conf /etc/vsts/machine_instance.conf"
             ],
             "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-        },
-        {
-            "type": "shell",
-            "inline": [
-                "rm -rf /etc/sudoers.d/packer"
-            ],
-            "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
         }
     ],
     "post-processors": [
         {
             "type": "shell-local",
             "inline": [
-                "pwsh -F {{template_dir}}/scripts/esxi/unregister_vm.ps1 {{ user `ovftool_deploy_vcenter` }} {{ user `ovftool_deploy_vcenter_username` }} {{ user `ovftool_deploy_vcenter_password` }} {{ user `vm_name` }}"
+                "pwsh -Command '{{template_dir}}/scripts/esxi/unregister_vm.ps1 -VCenterServerHostName \"{{ user `ovftool_deploy_vcenter` }}\" -VCenterUserName \"{{ user `ovftool_deploy_vcenter_username` }}\" -VCenterPassword \"{{ user `ovftool_deploy_vcenter_password` }}\" -VMName \"{{ user `vm_name` }}\"'"
             ]
         }
     ]

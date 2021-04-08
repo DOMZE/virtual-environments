@@ -31,7 +31,7 @@ jobs:
         $ImageType = "${{ parameters.image_type }}"
         $TemplateDirectoryName = if ($ImageType.StartsWith("ubuntu")) { "linux" } else { "win" }
         $TemplateDirectoryPath = Join-Path "images" $TemplateDirectoryName | Resolve-Path
-        $TemplatePath = Join-Path $TemplateDirectoryPath "$ImageType-esxi.json"
+        $TemplatePath = Join-Path $TemplateDirectoryPath "$ImageType-esxi.pkr.hcl"
         Write-Host "##vso[task.setvariable variable=TemplateDirectoryPath;]$TemplateDirectoryPath"
         Write-Host "##vso[task.setvariable variable=TemplatePath;]$TemplatePath"
 
@@ -45,15 +45,13 @@ jobs:
                         -BuilderHostUsername $(BUILDER_HOST_USERNAME) `
                         -BuilderHostPassword $(BUILDER_HOST_PASSWORD) `
                         -BuilderHostDataStore $(BUILDER_HOST_DATASTORE) `
-                        -BuilderHostPortGroup $(BUILDER_HOST_PORTGROUP) `
-                        -VCenterHost $(VCENTER_HOST) `
-                        -VCenterHostUsername $(VCENTER_HOST_USERNAME) `
-                        -VCenterHostPassword $(VCENTER_HOST_PASSWORD) `                        
+                        -BuilderHostPortGroup $(BUILDER_HOST_PORTGROUP) `                       
                         -VMName $(VM_NAME) `
                         -SSHUserName $(SSH_USERNAME) `
                         -ISOLocalPath $(ISO_LOCAL_PATH) `
                         -ISOChecksum $(ISO_CHECKSUM) `
-                        -GitHubFeedToken $(GITHUB_TOKEN)
+                        -GitHubFeedToken $(GITHUB_TOKEN) `
+                        -ImageVersion $(Build.BuildNumber)
     env:
       PACKER_LOG: 1
       PACKER_LOG_PATH: $(Build.ArtifactStagingDirectory)/packer-log.txt

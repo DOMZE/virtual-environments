@@ -1,21 +1,24 @@
-# Copyright 2019 VMware, Inc. All rights reserved.
-# SPDX-License-Identifier: BSD-2
-
+[CmdletBinding()]
 Param(
-    [Parameter(Position=1)]
-    [string]$VISERVER,
-
-    [Parameter(Position=2)]
-    [string]$VIUSERNAME,
-
-    [Parameter(Position=3)]
-    [string]$VIPASSWORD,
-
-    [Parameter(Position=4)]
-    [string]$VMNAME
+    [Parameter(Mandatory=$True)]
+    [string] $VCenterServerHostName,
+    [Parameter(Mandatory=$True)]
+    [string] $VCenterUserName,
+    [Parameter(Mandatory=$True)]
+    [string] $VCenterPassword,
+    [Parameter(Mandatory=$True)]
+    [string] $VMName
 )
 
-Connect-VIServer -Server "$VISERVER" -User "$VIUSERNAME" -Password "$VIPASSWORD"
-$vm = Get-VM "$VMNAME"
-$vm.ExtensionData.UnregisterVM()
-Disconnect-VIServer * -Confirm:$false
+$ErrorActionPreference = 'stop'
+try {
+    Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false
+    Connect-VIServer -Server "$VCenterServerHostName" -User "$VCenterUserName" -Password "$VCenterPassword"
+    $vm = Get-VM "$VMName"
+    $vm.ExtensionData.UnregisterVM()
+    Disconnect-VIServer * -Confirm:$false
+}
+catch {
+    $ErrorMessage = $_.Exception.Message
+    Write-Error "An error occurred while unregistering the virtual machine $($VMName): $ErrorMessage"
+}
