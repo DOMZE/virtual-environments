@@ -454,6 +454,6 @@ build {
   }
 
   post-processor "shell-local" {
-    inline = ["pwsh -Command '${path.root}/scripts/esxi/unregister_vm.ps1 -VCenterServerHostName \"${var.ovftool_deploy_vcenter}\" -VCenterUserName \"${var.ovftool_deploy_vcenter_username}\" -VCenterPassword \"${var.ovftool_deploy_vcenter_password}\" -VMName \"${var.vm_name}\"'"]
+    inline = ["pwsh -NonInteractive -NoProfile -File ${path.root}/scripts/esxi/unregister_vm.ps1 -VCenterServerHostName \"${var.ovftool_deploy_vcenter}\" -VCenterUserName \"${var.ovftool_deploy_vcenter_username}\" -VCenterPassword \"${var.ovftool_deploy_vcenter_password}\" -VMName \"${var.vm_name}\""]
   }
 }
