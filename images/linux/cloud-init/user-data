@@ -1,0 +1,18 @@
+#cloud-config
+users:
+  - default
+  - name: agent
+    ssh-authorized-keys:
+      - ssh-rsa <ssh_user_key>
+    lock_passwd: true
+    shell: /bin/bash
+runcmd:
+  # Enabling vSphere customiation to call cloud-init – reference: https://github.com/vmware/open-vm-tools/issues/240#issuecomment-395652692
+  - 'echo "disable_vmware_customization: false" >> /etc/cloud/cloud.cfg'
+  # Don’t clear /tmp on reboot for customisation – reference: https://github.com/vmware/open-vm-tools/issues/240#issuecomment-395652692
+  - sed -i 's/D \/tmp 1777 root root -/#D \/tmp 1777 root root -/g' /usr/lib/tmpfiles.d/tmp.conf
+  # Clear the machine-id to ensure the cloned VMs get unique IDs and IP addresses. reference: https://unix.stackexchange.com/a/419322/24359
+  - echo -n > /etc/machine-id
+# Update apt database on first boot (run 'apt-get update').
+package_update: true
+final_message: "The system is prepped, after $UPTIME seconds"

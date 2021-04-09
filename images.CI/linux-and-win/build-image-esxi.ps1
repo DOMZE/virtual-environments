@@ -6,7 +6,6 @@ param(
     [String] [Parameter (Mandatory=$true)] $BuilderHostDataStore,
     [String] [Parameter (Mandatory=$true)] $BuilderHostPortGroup,   
     [String] [Parameter (Mandatory=$true)] $VMName,
-    [String] [Parameter (Mandatory=$true)] $SSHUserName,
     [String] [Parameter (Mandatory=$true)] $ISOLocalPath,
     [String] [Parameter (Mandatory=$true)] $ISOChecksum,
     [String] [Parameter (Mandatory=$true)] $GitHubFeedToken,
@@ -20,7 +19,6 @@ if (-not (Test-Path $TemplatePath))
 }
 
 $Image = [io.path]::GetFileNameWithoutExtension($TemplatePath)
-$InstallPassword = [System.GUID]::NewGuid().ToString().ToUpper()
 
 # set the preseed with the correct password
 $preseedData = Get-Content -Path "$TemplatePath/http/preseed.cfg" | ForEach-Object {
@@ -57,8 +55,6 @@ packer build    -var "builder_host=$BuilderHost" `
                 -var "ovftool_deploy_vcenter_username=$VCenterHostUsername" `
                 -var "ovftool_deploy_vcenter_password=$VCenterHostPassword" `
                 -var "vm_name=$VMName-$ImageVersion" `
-                -var "ssh_username=$SSHUserName" `
-                -var "ssh_password=$InstallPassword" `
                 -var "iso_local_path=$ISOLocalPath" `
                 -var "iso_checksum=$ISOChecksum" `
                 -var "run_validation_diskspace=$env:RUN_VALIDATION_FLAG" `

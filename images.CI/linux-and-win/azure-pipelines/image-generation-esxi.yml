@@ -47,7 +47,6 @@ jobs:
                         -BuilderHostDataStore $(BUILDER_HOST_DATASTORE) `
                         -BuilderHostPortGroup $(BUILDER_HOST_PORTGROUP) `                       
                         -VMName $(VM_NAME) `
-                        -SSHUserName $(SSH_USERNAME) `
                         -ISOLocalPath $(ISO_LOCAL_PATH) `
                         -ISOChecksum $(ISO_CHECKSUM) `
                         -GitHubFeedToken $(GITHUB_TOKEN) `

@@ -98,10 +98,6 @@ variable "run_validation_diskspace" {
   default = "false"
 }
 
-variable "ssh_password" {
-  type    = string
-}
-
 variable "vm_name" {
   type    = string
 }
@@ -132,7 +128,7 @@ source "vmware-iso" "ubuntu" {
     "<enter><wait>"
   ]
   boot_wait               = "10s"
-  cpus                    = "${var.ramsize}"
+  cpus                    = "${var.numvcpus}"
   disk_size               = "122880"
   format                  = "ovf"
   guest_os_type           = "ubuntu-64"
@@ -144,20 +140,20 @@ source "vmware-iso" "ubuntu" {
     "${var.iso_local_path}",
     "http://cdimage.ubuntu.com/ubuntu-legacy-server/releases/20.04.1/release/ubuntu-20.04.1-legacy-server-amd64.iso"
   ]
-  memory                  = "${var.numvcpus}"
+  memory                  = "${var.ramsize}"
   network                 = "vmxnet3"
-  network_name            = "${var.builder_host_portgroup}" 
+  network_name            = "${var.builder_host_portgroup}"
   remote_datastore        = "${var.builder_host_datastore}"
   remote_host             = "${var.builder_host}"
-  remote_output_directory = "${var.builder_host_output_dir}"
+  remote_output_directory = "${var.builder_host_output_dir}/build/${var.image_version}"
   remote_password         = "${var.builder_host_password}"
   remote_type             = "esx5"
   remote_username         = "${var.builder_host_username}"
-  shutdown_command        = "echo ${var.ssh_password} | sudo -S shutdown now"
+  shutdown_command        = "sudo shutdown -P now"
   shutdown_timeout        = "1000s"
-  ssh_password            = "${var.ssh_password}"
+  ssh_password            = "agent"
   ssh_port                = 22
-  ssh_username            = "packer"
+  ssh_username            = "agent"
   ssh_wait_timeout        = "1800s"
   vm_name                 = "${var.vm_name}"
   vmx_data = {
@@ -171,11 +167,6 @@ source "vmware-iso" "ubuntu" {
 
 build {
   sources = ["source.vmware-iso.ubuntu"]
-
-  // provisioner "shell" {
-  //   execute_command = "echo ${var.ssh_password} | sudo -S sh -c '{{ .Vars }} {{ .Path }}'"
-  //   inline          = ["echo \"packer ALL=(ALL) NOPASSWD: ALL\" | tee /etc/sudoers.d/packer"]
-  // }
 
   provisioner "shell" {
     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -278,19 +269,6 @@ build {
       "${path.root}/scripts/installers/Install-AzureModules.ps1"
     ]
   }
-
-  provisioner "shell" {
-    environment_vars = [
-      "HELPER_SCRIPTS=${var.helper_script_folder}",
-      "DEBIAN_FRONTEND=noninteractive",
-      "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"
-    ]
-    execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-    scripts          = [
-      "${path.root}/scripts/installers/vmware.sh",
-      "${path.root}/scripts/installers/vsts-agent.sh"
-    ]
-  }  
 
   provisioner "shell" {
     environment_vars = [
@@ -403,6 +381,20 @@ build {
   }
 
   provisioner "shell" {
+    environment_vars = [
+      "HELPER_SCRIPTS=${var.helper_script_folder}",
+      "DEBIAN_FRONTEND=noninteractive",
+      "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"
+    ]
+    execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+    scripts          = [
+      "${path.root}/scripts/installers/vmware.sh",
+      "${path.root}/scripts/installers/vsts-agent.sh",
+      "${path.root}/scripts/installers/cloud-init.sh"
+    ]
+  }
+
+  provisioner "shell" {
     execute_command   = "sudo /bin/sh -c '{{ .Vars }} {{ .Path }}'"
     expect_disconnect = true
     scripts           = ["${path.root}/scripts/base/reboot.sh"]
@@ -460,11 +452,6 @@ build {
     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     inline          = ["mkdir -p /etc/vsts", "cp /tmp/ubuntu2004.conf /etc/vsts/machine_instance.conf"]
   }
-
-  // provisioner "shell" {
-  //   execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-  //   inline          = ["rm -rf /etc/sudoers.d/packer"]
-  // }
 
   post-processor "shell-local" {
     inline = ["pwsh -Command '${path.root}/scripts/esxi/unregister_vm.ps1 -VCenterServerHostName \"${var.ovftool_deploy_vcenter}\" -VCenterUserName \"${var.ovftool_deploy_vcenter_username}\" -VCenterPassword \"${var.ovftool_deploy_vcenter_password}\" -VMName \"${var.vm_name}\"'"]
