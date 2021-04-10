@@ -388,9 +388,8 @@ build {
     ]
     execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     scripts          = [
-      "${path.root}/scripts/installers/vmware.sh",
       "${path.root}/scripts/installers/vsts-agent.sh",
-      "${path.root}/scripts/installers/cloud-init.sh"
+      "${path.root}/scripts/installers/vmware.sh"
     ]
   }
 
@@ -401,10 +400,20 @@ build {
   }
 
   provisioner "shell" {
-    execute_command     = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-    pause_before        = "1m0s"
-    scripts             = ["${path.root}/scripts/installers/cleanup.sh"]
+    environment_vars = [
+      "DEBIAN_FRONTEND=noninteractive"
+    ]
+    execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+    pause_before     = "1m0s"
+    scripts          = [
+      "${path.root}/scripts/installers/cloud-init.sh"
+    ]
     start_retry_timeout = "10m"
+  }
+
+  provisioner "shell" {
+    execute_command     = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+    scripts             = ["${path.root}/scripts/installers/cleanup.sh"]
   }
 
   provisioner "shell" {

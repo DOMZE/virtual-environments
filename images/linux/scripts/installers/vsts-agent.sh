@@ -12,5 +12,5 @@ VSTS_ASSETS_URL=$(curl -s https://api.github.com/repos/microsoft/azure-pipelines
 download_with_retries $VSTS_ASSETS_URL "/tmp"
 URL=$(cat /tmp/assets.json | jq -r '.[] | select((.name | startswith("vsts-agent-linux")) and .platform == "linux-x64") | .downloadUrl')
 download_with_retries $URL "/tmp"
-mkdir ~/agent
-tar -xzf /tmp/vsts-agent-linux-*.tar.gz --directory ~/agent
+mkdir /agent
+tar -xzf /tmp/vsts-agent-linux-*.tar.gz --directory /agent
