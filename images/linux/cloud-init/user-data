@@ -1,0 +1,10 @@
+#cloud-config
+users:
+  - name: agent
+    ssh-authorized-keys:
+      - ssh-rsa <ssh_user_key>
+    lock_passwd: true
+    shell: /bin/bash
+# Update apt database on first boot (run 'apt-get update').
+package_update: true
+final_message: "The system is prepped, after $UPTIME seconds"
