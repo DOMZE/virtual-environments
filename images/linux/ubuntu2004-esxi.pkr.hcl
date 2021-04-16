@@ -5,10 +5,12 @@ variable "builder_host" {
 
 variable "builder_host_username" {
   type    = string
+  sensitive = true
 }
 
 variable "builder_host_password" {
   type    = string
+  sensitive = true
 }
 
 variable "builder_host_datastore" {
@@ -26,11 +28,13 @@ variable "builder_host_output_dir" {
 variable "dockerhub_login" {
   type    = string
   default = "${env("DOCKERHUB_LOGIN")}"
+  sensitive = true
 }
 
 variable "dockerhub_password" {
   type    = string
   default = "${env("DOCKERHUB_PASSWORD")}"
+  sensitive = true
 }
 
 variable "helper_script_folder" {
@@ -82,10 +86,12 @@ variable "ovftool_deploy_vcenter" {
 
 variable "ovftool_deploy_vcenter_username" {
   type    = string
+  sensitive = true
 }
 
 variable "ovftool_deploy_vcenter_password" {
   type    = string
+  sensitive = true
 }
 
 variable "ramsize" {

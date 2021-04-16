@@ -1,6 +1,5 @@
 #cloud-config
 users:
-  - default
   - name: agent
     ssh-authorized-keys:
       - ssh-rsa <ssh_user_key>
