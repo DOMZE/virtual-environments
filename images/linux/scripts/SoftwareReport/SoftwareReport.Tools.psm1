@@ -95,7 +95,8 @@ function Get-GitFTPVersion {
 }
 
 function Get-GoogleCloudSDKVersion {
-    return "$(gcloud --version | Select-Object -First 1)"
+    $aptSourceRepo = Get-AptSourceRepository -PackageName "google-cloud-sdk"
+    return "$(gcloud --version | Select-Object -First 1) (apt source repository: $aptSourceRepo)"
 }
 
 function Get-HavegedVersion {
@@ -262,4 +263,9 @@ function Get-SphinxVersion {
 
 function Get-YamllintVersion {
     return "$(yamllint --version)"
+}
+
+function Get-ZstdVersion {
+    $zstdVersion = zstd --version | Take-OutputPart -Part 1 -Delimiter "v" | Take-OutputPart -Part 0 -Delimiter ","
+    return "zstd $zstdVersion (homebrew)"
 }
